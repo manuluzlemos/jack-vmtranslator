@@ -16,7 +16,7 @@
             "type": "java",
             "name": "Launch App",
             "request": "launch",
-            "args": "C:/Users/manul/Documents/ecp/compiladores/jack-vmtranslator/src/test/java/br/ufma/ecp/07/MemoryAccess/BasicTest",
+            "args": "C:/Users/manul/Documents/ecp/compiladores/jack-vmtranslator/src/test/java/br/ufma/ecp/07/StackArithmetic/StackTest",
             "mainClass": "br.ufma.ecp.App",
             "projectName": "vmtranslator"
         }

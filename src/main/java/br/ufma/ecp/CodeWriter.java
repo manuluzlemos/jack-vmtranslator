@@ -10,6 +10,7 @@ public class CodeWriter {
     private String moduleName = "Main";
     private int labelCount = 0;
     private String outputFileName;
+    private int callCount = 0;
 
     public CodeWriter(String fname) {
         outputFileName = fname;
@@ -234,5 +235,165 @@ public class CodeWriter {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    
+    void setFileName(String str) {
+        moduleName = str.substring(0, str.indexOf("."));
+        moduleName = moduleName.substring(str.lastIndexOf("/") + 1);
+    }
+
+    void  writeLabel(String label ) {
+        write("(" + label + ")");
+    }
+
+    void  writeGoto(String label) {
+        write("@" + label);
+        write("0;JMP");
+    }
+
+    void  writeIf(String label ) {
+        write("@SP");
+        write("AM=M-1");
+        write("D=M");
+        write("M=0");
+        write("@" + label);
+        write("D;JNE");
+    }
+
+    void  writeCall(String funcName , int numArgs) {
+        var comment = String.format("// call %s %d", funcName, numArgs);
+        var returnAddr = String.format("%s_RETURN_%d", funcName, callCount);
+        callCount++;
+        
+        // push return-addr
+        write(String.format("@%s %s", returnAddr, comment) + " // retorno + comentario");
+        write("D=A");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+    
+        writeFramePush("LCL");
+        writeFramePush("ARG");
+        writeFramePush("THIS");
+        writeFramePush("THAT");
+    
+        // ARG = SP-n-5
+        write(String.format("@%d", numArgs) + " // numArgs"); 
+        write("D=A");
+        write("@5");
+        write("D=D+A");
+        write("@SP");
+        write("D=M-D");
+        write("@ARG");
+        write("M=D");
+    
+        // LCL = SP
+        write("@SP") ;
+        write("D=M");
+        write("@LCL");
+        write("M=D");
+    
+        writeGoto(funcName);
+    
+        write("(" + returnAddr + ")"); // (return-address)
+    }
+
+    void  writeFramePush(String value) {
+        write("@" + value + " // tipo");
+        write("D=M");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+    }
+
+    void  writeFunction(String funcName, int nLocals ) {
+        var loopLabel = funcName + "_INIT_LOCALS_LOOP";
+        var loopEndLabel = funcName + "_INIT_LOCALS_END";
+    
+        write("(" + funcName + ")" + "// initializa local variables");
+        write(String.format("@%d", nLocals));
+        write("D=A");
+        write("@R13"); // temp
+        write("M=D");
+        write("(" + loopLabel + ") // loopLabel");
+        write("@" + loopEndLabel + " // loopEndlabel");
+        write("D;JEQ");
+        write("@0");
+        write("D=A");
+        write("@SP");
+        write("A=M");
+        write("M=D");
+        write("@SP");
+        write("M=M+1");
+        write("@R13");
+        write("MD=M-1");
+        write("@" + loopLabel + " // loopLabel");
+        write("0;JMP");
+        write("(" + loopEndLabel + ") // loopEndLabel");
+    }
+
+    void  writeReturn() {
+        write("@LCL"); // FRAME = LCL
+        write("D=M");
+    
+        write("@R13"); // R13 -> FRAME
+        write("M=D");
+    
+        write("@5") ;// RET = *(FRAME-5)
+        write("A=D-A");
+        write("D=M");
+        write("@R14"); // R14 -> RET
+        write("M=D");
+    
+        write("@SP") ;// *ARG = pop()
+        write("AM=M-1");
+        write("D=M");
+        write("@ARG");
+        write("A=M");
+        write("M=D");
+    
+        write("D=A"); // SP = ARG+1
+        write("@SP");
+        write("M=D+1");
+    
+        write("@R13"); // THAT = *(FRAME-1)
+        write("AM=M-1");
+        write("D=M");
+        write("@THAT");
+        write("M=D");
+    
+        write("@R13") ;// THIS = *(FRAME-2)
+        write("AM=M-1");
+        write("D=M");
+        write("@THIS");
+        write("M=D");
+    
+        write("@R13"); // ARG = *(FRAME-3)
+        write("AM=M-1");
+        write("D=M");
+        write("@ARG");
+        write("M=D");
+    
+        write("@R13") ;// LCL = *(FRAME-4)
+        write("AM=M-1");
+        write("D=M");
+        write("@LCL");
+        write("M=D");
+    
+        write("@R14"); // goto RET
+        write("A=M");
+        write("0;JMP");
+    }
+
+    public void  writeInit() {
+        write("@256");
+        write("D=A");
+        write("@SP");
+        write("M=D");
+        writeCall("Sys.init", 0);
     }
 }

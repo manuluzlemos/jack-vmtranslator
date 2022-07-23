@@ -16,7 +16,14 @@ public class Command {
         OR,
         NOT,
         PUSH,
-        POP
+        POP,
+
+        LABEL,
+        GOTO,
+        IF,
+        CALL,
+        FUNCTION,
+        RETURN
         
         ;
     }
@@ -27,6 +34,9 @@ public class Command {
     public Command (String[] command) {
 
         type = Command.Type.valueOf(command[0].toUpperCase());
+        
+        if (command[0].equals("if-goto"))
+            type = Type.IF;
 
         for (int i=1;i<command.length;i++){
             var arg = command[i];

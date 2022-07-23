@@ -27,49 +27,61 @@ public class App {
             var command = p.nextCommand();
             switch (command.type) {
 
-                // arithmetics
+                // comandos aritméticos e lógicos
                 case ADD:
                     code.writeArithmeticAdd();
                     break;
-
                 case SUB:
                     code.writeArithmeticSub();
                     break;
-
                 case NEG:
                     code.writeArithmeticNeg();
                     break;
-
                 case NOT:
                     code.writeArithmeticNot();
                     break;
-                
                 case EQ:
                     code.writeArithmeticEq();
                     break;
-
                 case LT:
                     code.writeArithmeticLt();
                     break;
-                
                 case GT:
                     code.writeArithmeticGt();
                     break;
-                
                 case AND:
                     code.writeArithmeticAnd();
-                    break;
-                            
+                    break;  
                 case OR:
                     code.writeArithmeticOr();
                     break;
 
+                // comandos de empilhar e desempilhar 
                 case PUSH:
                     code.writePush(command.args.get(0), Integer.parseInt(command.args.get(1)));
                     break;
-                
                 case POP:
                     code.writePop(command.args.get(0), Integer.parseInt(command.args.get(1)));
+                    break;
+
+                // demais comandos
+                case LABEL:
+                    code.writeLabel(command.args.get(0));
+                    break;
+                case GOTO:
+                    code.writeGoto(command.args.get(0));
+                    break;
+                case IF:
+                    code.writeIf(command.args.get(0));
+                    break;
+                case CALL:
+                    code.writeCall(command.args.get(0), Integer.parseInt(command.args.get(1)));
+                    break;
+                case FUNCTION:
+                    code.writeFunction(command.args.get(0), Integer.parseInt(command.args.get(1)));
+                    break;
+                case RETURN:
+                    code.writeReturn();
                     break;
                                   
                 default:
@@ -98,16 +110,15 @@ public class App {
             System.out.println(outputFileName);
             CodeWriter code = new CodeWriter(outputFileName);
 
+            code.writeInit();
+
             for (File f : file.listFiles()) {
                 if (f.isFile() && f.getName().endsWith(".vm")) {
-
                     var inputFileName = f.getAbsolutePath();
                     var pos = inputFileName.indexOf('.');
                     
-                    
                     System.out.println("compiling " +  inputFileName);
                     translateFile(f,code);
-
                 }
 
             }
@@ -123,6 +134,7 @@ public class App {
                 var outputFileName = inputFileName.substring(0, pos) + ".asm";
                 CodeWriter code = new CodeWriter(outputFileName);
                 System.out.println("compiling " +  inputFileName);
+                code.writeInit();
                 translateFile(file,code); 
                 code.save();               
             }
